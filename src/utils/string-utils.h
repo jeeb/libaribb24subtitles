@@ -1,0 +1,1 @@
+char* append_text_char(char* textin, char appendum);char* append_text_string(char* textin,const char* appendum);

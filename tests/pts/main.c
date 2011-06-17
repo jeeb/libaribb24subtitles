@@ -1,0 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+int main(int argc, char** argv){
+	//uint8_t pts[] = { 0x27,0x4E,0xDF,0xB5,0x7F };
+	//uint8_t pts[] = { 0x27, 0x4E, 0xE1, 0x07, 0x99};
+	uint8_t pts[] = { 0x27,0x4E,0xA3,0x83, 0x1B};
+	parsePTStoString(pts);
+	return 0;
+}

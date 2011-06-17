@@ -1,0 +1,12 @@
+ARIB B24 Caption parsing library
+
+This library will enable you to parse captions from ARIB transport streams. 
+Just this the functions with uint8_t arrays with the hex values inside and you'll receive a Advanced Subtitle Script line or just the text.
+man-pages for the functions will follow when I figured out most of the stuff.
+
+Plans are to also return a ass_info structure that contains screen size, line width etc. what can be read from the caption statements of the transport stream.
+
+Currently working:
+* Extracting text from subtitles
+* Extracting a couple of tages (WHF, CYF, etc.)
+

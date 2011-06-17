@@ -1,0 +1,1 @@
+char* parseARIBB24subtitleToText(uint8_t*, int);char* parseARIBB24subtitleToASS(uint8_t*, int);char* parsePTStoString(char*);

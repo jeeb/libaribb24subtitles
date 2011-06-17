@@ -1,0 +1,15 @@
+CC = gcc
+CFLAGS = -Wall -g -DVERBOSE
+LDFLAGS = 
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
+
+_COMPILE: all
+
+compile:
+	for i in $(DIRS); do make -C $$i; done
+
+clean-all:
+	for i in $(DIRS); do make -C $$i clean; done
+
