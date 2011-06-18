@@ -208,7 +208,7 @@ struct PES_info *ARIBB24_parseTSpacket(uint8_t* data){
 
 			DU->parameter = data[pos+1];
 			pos = pos + 5;
-			DU->payload = cut_array(data,DU->size);
+			DU->payload = cut_array(&(data[pos]),DU->size);
 			pos = pos + DU->size;
 			pes_packet->datagroup->data_units = append_list(pes_packet->datagroup->data_units,DU);
 			pes_packet->datagroup->data_units_num++;

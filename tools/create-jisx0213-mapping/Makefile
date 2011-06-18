@@ -1,1 +1,0 @@
-include ../../Makefile.globalAPPNAME = create-jisx0213-mappingOBJ = main.oall: clean $(OBJ)	$(CC) $(CFLAGS) -o $(APPNAME) $(OBJ)clean:	rm *.o $(APPNAME) || true
