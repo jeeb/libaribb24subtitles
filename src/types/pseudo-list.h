@@ -1,0 +1,1 @@
+struct list_element {	void* element_data;	struct list_element* next;};

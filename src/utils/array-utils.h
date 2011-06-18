@@ -1,0 +1,1 @@
+uint8_t* cut_array(uint8_t *arrin, int len);

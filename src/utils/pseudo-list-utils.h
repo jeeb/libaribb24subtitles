@@ -1,0 +1,1 @@
+struct list_element* append_list(struct list_element* list, void* obj);

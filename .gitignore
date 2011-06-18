@@ -1,0 +1,4 @@
+src/*.o
+src/utils/*.o
+*.o
+libaribb24captions.a

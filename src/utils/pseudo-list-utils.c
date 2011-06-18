@@ -1,0 +1,1 @@
+#include "../common.h"struct list_element* append_list(struct list_element* list, void* obj){	struct list_element* le = malloc(sizeof(struct list_element));	le->element_data = obj;	le->next = NULL;	if (list == NULL)		return le;	else {		le->next = list;		return le;	}}
