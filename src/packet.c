@@ -211,6 +211,7 @@ struct PES_info *ARIBB24_parseTSpacket(uint8_t* data){
 			DU->payload = cut_array(data,DU->size);
 			pos = pos + DU->size;
 			pes_packet->datagroup->data_units = append_list(pes_packet->datagroup->data_units,DU);
+			pes_packet->datagroup->data_units_num++;
 			dullcounter = dullcounter - (pos - oldpos);
 		}
 		
