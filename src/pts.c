@@ -28,6 +28,18 @@ char* parsePTStoString(uint8_t *ptsin){
 		pts_ms = pts_ms - (pts_ms%10);
 	}
 	pts_ms=pts_ms/10;
+	if (pts_ms == 100){
+		pts_s++;
+		pts_ms = 0;
+		if (pts_s >= 60){
+			pts_m++;
+			pts_s=0;
+			if (pts_m >= 60){
+				pts_h++;
+				pts_m=0;
+			}
+		}
+	}
 	
 	char* outstr = malloc(100 * sizeof(char));
 	snprintf(outstr,100,"%02d:%02d:%02d.%02d",pts_h,pts_m,pts_s,pts_ms);
