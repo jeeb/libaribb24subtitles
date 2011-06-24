@@ -1,1 +1,1 @@
-#include "../common.h"uint8_t* cut_array(uint8_t *arrin, int len){	uint8_t* newarr = malloc(len*sizeof(uint8_t));	memcpy(newarr,arrin,len*sizeof(uint8_t));	return newarr;}
+#include "../common.h"uint8_t* cut_array(uint8_t *arrin, int len){	uint8_t* newarr = malloc(len*sizeof(uint8_t));	memset(newarr,0,len*sizeof(uint8_t));	memcpy(newarr,arrin,len*sizeof(uint8_t));	return newarr;}
