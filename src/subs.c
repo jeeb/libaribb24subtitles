@@ -30,7 +30,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 	
 	// Character Set Definitions for Locks
 	uint8_t g0charset = 0;
-	uint8_t g1charset = ARIB_USE_ALPHANUMERIC_TABLE;
+	uint8_t g1charset = ARIB_USE_KATAKANA_TABLE;
 	uint8_t g3charset = 0;
 
 	// UGLY GLOBAL VARIABLE WORKAROUND
@@ -48,7 +48,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 	while (pos < rawsubtitles_length){
 
 		#ifdef DEBUG
-			snprintf(errbuf,ERRBUF_MAX,"rawsubtitles_length: %d - pos: %d - char: %02X\n",rawsubtitles_length,pos,arr[pos]);
+			snprintf(errbuf,ERRBUF_MAX,"pos: %03d/%03d - char: %02X | ",pos,rawsubtitles_length,arr[pos]);
 			fwrite(errbuf,strlen(errbuf),1,errout);
 			fflush(errout);
 		#endif
@@ -79,22 +79,22 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				{
 					case 0x53:
 						#ifdef VERBOSE
-							printf("SWF");
+							printf("SWF | Set Writing Format");
 						#endif
 						break;
 					case 0x54:
 						#ifdef VERBOSE
-							printf("CCC");
+							printf("CCC | Composite Character Composition");
 						#endif
 						break;
 					case 0x58:
 						#ifdef VERBOSE
-							printf("SHS");
+							printf("SHS | Set Horizontal Spacing");
 						#endif
 						break;
 					case 0x59:
 						#ifdef VERBOSE
-							printf("SVS");
+							printf("SVS | Set Vertical Spacing");
 						#endif
 						break;
 					case 0x5D:
@@ -129,7 +129,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 						break;
 					case 0x6E:
 						#ifdef VERBOSE
-							printf("RCS");
+							printf("RCS | Raster Color command");
 						#endif						
 						break;
 					default:
@@ -187,8 +187,12 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					switch(arr[pos]){
 						case 0x61:
 							#ifdef VERBOSE
-								printf("ACPS");
+								printf("ACPS | Active Coordinate Position Set");
 							#endif
+							char* tmp = malloc(1024);
+							snprintf(tmp,1024,"{\\pos(%d,%d)}",P1,P2);
+							assout = append_text_string(assout,tmp);
+							free(tmp);
 							break;
 						case 0x56:
 							#ifdef VERBOSE
@@ -197,7 +201,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 							break;
 						case 0x57:
 							#ifdef VERBOSE
-								printf("SSM");
+								printf("SSM | Character composition dot disgnation");
 							#endif
 							break;
 						case 0x5F:
@@ -404,9 +408,6 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 						break;
 				}
 				pos++;
-				#ifdef VERBOSE
-					printf("\n");
-				#endif
 			}
 			else {
 				pos++;
@@ -506,6 +507,9 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 
 			textout = append_text_string(textout," ");
 			assout = append_text_string(assout," ");
+			#ifdef VERBOSE
+				printf("\n");
+			#endif
 			pos++;
 		} else if (arr[pos] == 0x00){
 			#ifdef VERBOSE
@@ -524,7 +528,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				if (current_table == ARIB_USE_KATAKANA_TABLE){
 					uint32_t arrelm = 0x2500 | arr[pos];
 					#ifdef DEBUG
-						printf("=%X= ",arrelm);
+						printf("(%X) ",arrelm);
 						printf("%s",x0215_mapping[arrelm]);
 					#endif
 					textout = append_text_string(textout,x0215_mapping[arrelm]);
@@ -555,7 +559,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				else if (current_table == ARIB_USE_HIRAGANA_TABLE){
 					uint32_t arrelm = 0x2400 | arr[pos];
 					#ifdef DEBUG
-						printf("=%X= ",arrelm);
+						printf("(%X) ",arrelm);
 						printf("%s",x0215_mapping[arrelm]);
 					#endif
 					textout = append_text_string(textout,x0215_mapping[arrelm]);
@@ -572,7 +576,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			} else if ((arr[pos] > 0x1F && arr[pos] < 0x7F) || (arr[pos] > 0xA0 && arr[pos] < 0xFF)) {
 				uint32_t arrelm = ((arr[pos] << 8) & 0xFF00) | arr[pos+1];
 				#ifdef DEBUG
-					printf("=%X= ",arrelm);
+					printf("(%X) ",arrelm);
 					printf("%s",x0215_mapping[arrelm]);
 				#endif
 				textout = append_text_string(textout,x0215_mapping[arrelm]);
@@ -585,6 +589,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					fflush(errout);		
 				}
 
+
 				pos++;
 			} else {
 				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
@@ -593,7 +598,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				fflush(errout);
 			}
 			#ifdef VERBOSE
-				printf("\n");
+					printf("\n");
 			#endif
 			pos++;
 		} 

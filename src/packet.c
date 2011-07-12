@@ -155,6 +155,11 @@ struct PES_info *ARIBB24_parseTSpacket(uint8_t* data){
 			return pes_packet;
 		}
 
+		#ifdef DEBUG
+			printf("pes->dg->size: %u\n",pes_packet->datagroup->size);
+		#endif
+
+		
 		if (pes_packet->datagroup->id == 0x0 || pes_packet->datagroup->id == 0x20) {
 			pes_packet->datagroup->type=ARIBB24_DATAGROUP_CAPTION_MANAGEMENT;
 		} else {
@@ -197,6 +202,10 @@ struct PES_info *ARIBB24_parseTSpacket(uint8_t* data){
 			uint8_t oldpos = pos;
 			struct ARIB_data_unit *DU = initialize_ARIB_data_unit();
 			DU->size = (((data[pos+2] & 0x0000FF) << 16) | ((data[pos+3] & 0x00FF) << 8) | ((data[pos+4] & 0xFF) << 0));
+			#ifdef DEBUG
+				printf("du->size: %u\n",DU->size);
+			#endif
+
 			if (DU->size > 188 || DU->size > PPL){
 				if (dullcounter < DU->size)
 					dullcounter=0;

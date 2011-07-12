@@ -1,0 +1,2 @@
+OPWD=$PWD; cd ../..; make; cd "$OPWD";
+gcc -o a main.c -L/data/web/libaribb24subtitles/ -I/data/web/libaribb24subtitles/src/ -laribb24captions -lm

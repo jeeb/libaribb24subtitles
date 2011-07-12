@@ -43,7 +43,7 @@ char* parsePTStoString(uint8_t *ptsin){
 	
 	char* outstr = malloc(100 * sizeof(char));
 	snprintf(outstr,100,"%02d:%02d:%02d.%02d",pts_h,pts_m,pts_s,pts_ms);
-	#ifdef DEBUG
+	#ifdef DEBUG_PTS
 		printf("debug: %X %X %X %X %X : %u : %d %d %d %d\n",ptsin[0],ptsin[1],ptsin[2],ptsin[3],ptsin[4],ptstotalseconds,pts_ms,pts_s,pts_m,pts_h);	
 		printf("outstr: %s\n",outstr);
 	#endif

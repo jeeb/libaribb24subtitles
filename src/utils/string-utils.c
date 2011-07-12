@@ -13,7 +13,7 @@ char* append_text_string(char* textin,const char* appendum){
 	char *z = malloc(sizeof(char)*(newlen));
 	memset(z,0,newlen);
 	snprintf(z,newlen,"%s%s",textin,appendum);
-	#ifdef DEBUG
+	#ifdef DEBUG_STRINGUTILS
 		printf("size: %d, textin: %s, appendum: %s, z: %s\n",newlen,textin,appendum,z);
 	#endif
 	return z;
