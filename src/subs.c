@@ -488,27 +488,28 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			pos++;
 			if (arr[pos] == 0x29){
 				#ifdef VERBOSE
-					printf("Switching to Charset | [%02X|%02X] ",arr[pos+1],arr[pos+2]);
+					printf("Change G1 Charset -> [%02X] ",arr[pos+1]);
 				#endif
 				pos++;
 				if (arr[pos] == ARIB_USE_ALPHANUMERIC_TABLE){
 					#ifdef VERBOSE
 						printf("using alphanumeric table.");
 					#endif
+					g1charset = ARIB_USE_ALPHANUMERIC_TABLE;
 					current_table = ARIB_USE_ALPHANUMERIC_TABLE;
 				} else if (arr[pos] == ARIB_USE_KATAKANA_TABLE) {
 					#ifdef VERBOSE
 						printf("using katakana table.");
 					#endif
+					g1charset = ARIB_USE_KATAKANA_TABLE;
 					current_table = ARIB_USE_KATAKANA_TABLE;
 				} else {
-					if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+					if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 					snprintf(errbuf,ERRBUF_MAX,"unknown ESC 0x29 command parameter: 0x%02X [@%d]\n",arr[pos],pos);
 					fwrite(errbuf,strlen(errbuf),1,errout);
 					fflush(errout);
 				}
-				pos++;
-				
+				//pos++;
 			} else if (arr[pos] == 0x6E){
 				#ifdef VERBOSE
 					printf("LS3 | Lock Shift to G3");
@@ -517,7 +518,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				//pos++;
 				
 			} else {
-				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 				snprintf(errbuf,ERRBUF_MAX,"unknown ESC command: 0x%02X [@%d]\n",arr[pos],pos);
 				fwrite(errbuf,strlen(errbuf),1,errout);
 				fflush(errout);				
@@ -538,6 +539,17 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				printf("\n");
 			#endif
 			pos++;
+		} else if (arr[pos] == 0x7F){ 
+			#ifdef VERBOSE
+				printf("DEL | Delete");
+			#endif
+
+			textout = append_text_string(textout," ");
+			assout = append_text_string(assout," ");
+			#ifdef VERBOSE
+				printf("\n");
+			#endif
+			pos++;
 		} else if (arr[pos] == 0x00){
 			#ifdef VERBOSE
 				printf("NUL | NULL command");
@@ -546,7 +558,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			pos++;
 		} else {
 			if ((arr[pos] >= 0x00 && arr[pos] < 0x1F )|| (arr[pos] > 0x7F && arr[pos] < 0xA0) || arr[pos] >= 0xFE) {
-				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 				snprintf(errbuf,ERRBUF_MAX,"unparsed command: 0x%04X/%d [@%d/%02X]\n",arr[pos],arr[pos],pos,pos);
 				fwrite(errbuf,strlen(errbuf),1,errout);
 				fflush(errout);	
@@ -565,7 +577,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					assout = append_text_string(assout,x0215_mapping[arrelm]);
 					
 					if (strcmp(x0215_mapping[arrelm],".") == 0){
-						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 						snprintf(errbuf,ERRBUF_MAX,"undefined KATAKANA char: 0x%04X/%d [@%d/%02X]\n",arrelm,arrelm,pos,pos);
 						fwrite(errbuf,strlen(errbuf),1,errout);
 						fflush(errout);		
@@ -583,7 +595,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					assout = append_text_char(assout,alphanumeric_graphical_set[arr[pos]]);
 
 					if (alphanumeric_graphical_set[arr[pos]] == '.'){
-						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 						snprintf(errbuf,ERRBUF_MAX,"undefined ALPHANUMERIC char: 0x%04X/%d [@%d/0x%02X]\n",arr[pos],arr[pos],pos,pos);
 						fwrite(errbuf,strlen(errbuf),1,errout);
 						fflush(errout);		
@@ -603,7 +615,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					assout = append_text_string(assout,x0215_mapping[arrelm]);
 					
 					if (strcmp(x0215_mapping[arrelm],".") == 0){
-						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+						if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 						snprintf(errbuf,ERRBUF_MAX,"undefined HIRAGANA char: 0x%04X/%d [@%d/%02X]\n",arrelm,arrelm,pos,pos);
 						fwrite(errbuf,strlen(errbuf),1,errout);
 						fflush(errout);		
@@ -623,7 +635,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				assout = append_text_string(assout,x0215_mapping[arrelm]);
 				
 				if (strcmp(x0215_mapping[arrelm],".") == 0){
-					if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+					if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 					snprintf(errbuf,ERRBUF_MAX,"undefined KANJI char: 0x%04X/%d [@%d/%02X]\n",arrelm,arrelm,pos,pos);
 					fwrite(errbuf,strlen(errbuf),1,errout);
 					fflush(errout);		
@@ -632,7 +644,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 
 				pos++;
 			} else {
-				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length); dumped_already = 1; }
+				if (dumped_already == 0) { dumpPacket(arr,rawsubtitles_length,errout); dumped_already = 1; }
 				snprintf(errbuf,ERRBUF_MAX,"unhandled command: 0x%02X [@%d/%02X]\n",arr[pos],pos,pos);
 				fwrite(errbuf,strlen(errbuf),1,errout);
 				fflush(errout);
