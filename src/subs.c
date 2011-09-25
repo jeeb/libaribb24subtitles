@@ -21,14 +21,25 @@ int extractParameter(uint8_t *data, int len){
 char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 	// array position
 	int pos = 0;
+	
 	// Current Character Table in use
 	int current_table = 0;
 
+	// debug variables
 	int dumped_already = 0;
+
+	// Error output stuff
+	#define ERRBUF_MAX 2048
+	FILE *errout = stdout;
+	char *errbuf = malloc(ERRBUF_MAX);
 	
+	// work-array to be able to move around
 	uint8_t* arr = rawsubtitles;
 	
-	// Character Set Definitions for Locks
+	// holds the last G charset we used.
+	uint8_t lastcharset = 0;
+	
+	// Default character set definitions for locks (SS, LS)
 	uint8_t g0charset = 0;
 	uint8_t g1charset = ARIB_USE_KATAKANA_TABLE;
 	uint8_t g3charset = 0;
@@ -39,12 +50,11 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 	
 	textout[0] = 0;
 	assout[0] = 0;
+	
+	// initializing
 	pos = 0;
-	
-	#define ERRBUF_MAX 2048
-	FILE *errout = stderr;
-	char *errbuf = malloc(ERRBUF_MAX);
-	
+
+	// starting mainloop
 	while (pos < rawsubtitles_length){
 
 		#ifdef DEBUG
@@ -53,12 +63,19 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			fflush(errout);
 		#endif
 
+		#ifdef VERBOSE
+			printf("%02X | ",arr[pos]); // output current processing hex
+		#endif
+
 		if (arr[pos] == 0x9B){
+		
 			#ifdef VERBOSE
 				printf("CSI | ");
 			#endif
 			
 			pos++;
+			
+			// extracting parameter
 			int argstart = pos;
 			int arglen = 0;
 
@@ -74,6 +91,8 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			#endif
 			
 			pos++;
+			
+			// check type of command
 			if (arr[pos-1] == 0x20 && arr[pos] > 0x52 && arr[pos] < 0x70){
 				switch(arr[pos])
 				{
@@ -133,7 +152,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 						#endif						
 						break;
 					default:
-						snprintf(errbuf,ERRBUF_MAX,"unknown 1 parametered CSI command: CSI P1: 0x%02X CMD: 0x%02X [@%d]\n",P1,arr[pos],pos);
+						snprintf(errbuf,ERRBUF_MAX,"libaribb24subtitles error: unknown 1 parametered CSI command: CSI P1: 0x%02X CMD: 0x%02X [@%d]\n",P1,arr[pos],pos);
 						fwrite(errbuf,strlen(errbuf),1,errout);
 						fflush(errout);
 						break;
@@ -186,6 +205,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				if (arr[pos-1] == 0x20){
 					switch(arr[pos]){
 						case 0x61:
+							{
 							#ifdef VERBOSE
 								printf("ACPS | Active Coordinate Position Set");
 							#endif
@@ -194,6 +214,7 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 							assout = append_text_string(assout,tmp);
 							free(tmp);
 							break;
+							}
 						case 0x56:
 							#ifdef VERBOSE
 								printf("SDF");
@@ -294,6 +315,12 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 				printf("YLF | Yellow Foreground\n");
 			#endif
 			assout = append_text_string(assout,"{\\1c&H00FF00&}");
+			pos++;
+		} else if (arr[pos] == 0x82){
+			#ifdef VERBOSE
+				printf("GRF | Green Foreground\n");
+			#endif
+			assout = append_text_string(assout,"{\\1c&HFFFF00&}");
 			pos++;
 		} else if (arr[pos] == 0x90){
 			#ifdef VERBOSE
@@ -461,17 +488,17 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 			pos++;
 			if (arr[pos] == 0x29){
 				#ifdef VERBOSE
-					printf("Switching to Charset | ");
+					printf("Switching to Charset | [%02X|%02X] ",arr[pos+1],arr[pos+2]);
 				#endif
 				pos++;
 				if (arr[pos] == ARIB_USE_ALPHANUMERIC_TABLE){
 					#ifdef VERBOSE
-						printf(" using alphanumeric table.");
+						printf("using alphanumeric table.");
 					#endif
 					current_table = ARIB_USE_ALPHANUMERIC_TABLE;
 				} else if (arr[pos] == ARIB_USE_KATAKANA_TABLE) {
 					#ifdef VERBOSE
-						printf(" using katakana table.");
+						printf("using katakana table.");
 					#endif
 					current_table = ARIB_USE_KATAKANA_TABLE;
 				} else {
@@ -531,6 +558,9 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 						printf("(%X) ",arrelm);
 						printf("%s",x0215_mapping[arrelm]);
 					#endif
+					#ifdef VERBOSE
+						printf("CHAR | appended %X/%s",arrelm,x0215_mapping[arrelm]);
+					#endif
 					textout = append_text_string(textout,x0215_mapping[arrelm]);
 					assout = append_text_string(assout,x0215_mapping[arrelm]);
 					
@@ -545,6 +575,10 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					#ifdef DEBUG
 						printf("(%X) %c",arr[pos],alphanumeric_graphical_set[arr[pos]]);
 					#endif
+					#ifdef VERBOSE
+						printf("CHAR | appended %X/%c",arr[pos],alphanumeric_graphical_set[arr[pos]]);
+					#endif
+
 					textout = append_text_char(textout,alphanumeric_graphical_set[arr[pos]]);
 					assout = append_text_char(assout,alphanumeric_graphical_set[arr[pos]]);
 
@@ -562,6 +596,9 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 						printf("(%X) ",arrelm);
 						printf("%s",x0215_mapping[arrelm]);
 					#endif
+					#ifdef VERBOSE
+						printf("CHAR | appended %X/%s",arrelm,x0215_mapping[arrelm]);
+					#endif					
 					textout = append_text_string(textout,x0215_mapping[arrelm]);
 					assout = append_text_string(assout,x0215_mapping[arrelm]);
 					
@@ -579,6 +616,9 @@ char* parseARIBB24subtitleToASS(uint8_t* rawsubtitles, int rawsubtitles_length){
 					printf("(%X) ",arrelm);
 					printf("%s",x0215_mapping[arrelm]);
 				#endif
+				#ifdef VERBOSE
+						printf("CHAR | appended %X/%s",arrelm,x0215_mapping[arrelm]);
+				#endif				
 				textout = append_text_string(textout,x0215_mapping[arrelm]);
 				assout = append_text_string(assout,x0215_mapping[arrelm]);
 				

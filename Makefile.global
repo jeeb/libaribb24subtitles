@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -DDEBUG
+CFLAGS = -Wall -g -DVERBOSE
 LDFLAGS = 
 
 %.o: %.c
